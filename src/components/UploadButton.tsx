@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogTrigger } from './ui/dialog'
 import { Button } from './ui/button'
 
 import Dropzone from 'react-dropzone'
-import { Cloud, File } from 'lucide-react'
+import { Cloud, File, Loader2 } from 'lucide-react'
 import { Progress } from './ui/progress'
 import { useUploadThing } from '@/lib/uploadthing'
 import { useToast } from './ui/use-toast'
@@ -14,7 +14,7 @@ import { useRouter } from 'next/navigation'
 
 const UploadDropzone = () => {
 	const router = useRouter()
-	const [isUploading, setIsUploading] = useState(true)
+	const [isUploading, setIsUploading] = useState(false)
 	const [uploadProgress, setUploadProgress] = useState(0)
 	const { toast } = useToast()
 
@@ -64,7 +64,6 @@ const UploadDropzone = () => {
 				}
 
 				const [fileResponse] = res
-
 				const key = fileResponse?.key
 
 				if (!key) {
@@ -110,9 +109,18 @@ const UploadDropzone = () => {
 							{isUploading ? (
 								<div className='w-full mt-4 max-w-xs mx-auto'>
 									<Progress
+										indicatorColor={
+											uploadProgress === 100 ? 'bg-green-500' : ''
+										}
 										value={uploadProgress}
 										className='h-1 w-full bg-zinc-200'
 									/>
+									{uploadProgress === 100 ? (
+										<div className='flex gap-1 items-center justify-center text-sm text-zinc-700 text-center pt-2'>
+											<Loader2 className='h-3 w-3 animate-spin' />
+											Redirecting....
+										</div>
+									) : null}
 								</div>
 							) : null}
 							<input
