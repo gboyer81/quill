@@ -59,7 +59,6 @@ export const ourFileRouter = {
           },
         })
       } catch (err) {
-        console.error(err) // 429 over quota openai error
         await db.file.update({
           data: {
             uploadStatus: "FAILURE",
