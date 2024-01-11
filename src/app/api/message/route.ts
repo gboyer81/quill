@@ -1,13 +1,13 @@
-import { db } from "@/db"
-import { SendMessageValidator } from "@/lib/validator/SendMessageValidator"
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/dist/server"
+import { OpenAIStream, StreamingTextResponse } from "ai"
+
+import { NextRequest } from "next/server"
 import { OpenAIEmbeddings } from "langchain/embeddings/openai"
 import { PineconeStore } from "langchain/vectorstores/pinecone"
-import { pinecone } from "../../../lib/pinecone"
-import { NextRequest } from "next/server"
+import { SendMessageValidator } from "@/lib/validator/SendMessageValidator"
+import { db } from "@/db"
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/dist/server"
 import { openai } from "@/lib/openai"
-
-import { OpenAIStream, StreamingTextResponse } from "ai"
+import { pinecone } from "../../../lib/pinecone"
 
 export const POST = async (req: NextRequest) => {
   const body = await req.json()
