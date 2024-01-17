@@ -1,5 +1,4 @@
 'use client'
-
 import { cn } from '@/lib/utils'
 import PdfFullscreen from './PdfFullscreen'
 import { z } from 'zod'
@@ -26,6 +25,7 @@ import 'react-pdf/dist/Page/TextLayer.css'
 const pdfWorkerUrl = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`
 
 pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl
+
 interface pdfRendererProps {
 	url: string
 }
