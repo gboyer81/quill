@@ -30,12 +30,13 @@ const BillingForm = ({ subscriptionPlan }: BillingFormProps) => {
         if (!url) {
           toast({
             title: 'There was a problem...',
-            description: 'Please reload the page and try again.',
+            description: 'Please try again in a moment',
             variant: 'destructive',
           })
         }
       },
     })
+
   return (
     <MaxWidthWrapper className="max-w-5xl">
       <form
@@ -50,23 +51,25 @@ const BillingForm = ({ subscriptionPlan }: BillingFormProps) => {
             <CardTitle>Subscription Plan</CardTitle>
             <CardDescription>
               You are currently on the <strong>{subscriptionPlan.name}</strong>{' '}
-              plan
+              plan.
             </CardDescription>
           </CardHeader>
+
           <CardFooter className="flex flex-col items-start space-y-2 md:flex-row md:justify-between md:space-x-0">
             <Button type="submit">
               {isLoading ? (
                 <Loader2 className="mr-4 h-4 w-4 animate-spin" />
               ) : null}
               {subscriptionPlan.isSubscribed
-                ? 'Manage subscription'
+                ? 'Manage Subscription'
                 : 'Upgrade to PRO'}
             </Button>
+
             {subscriptionPlan.isSubscribed ? (
               <p className="rounded-full text-xs font-medium">
                 {subscriptionPlan.isCanceled
-                  ? 'Your subscription will end on '
-                  : 'Your subscription will renew on '}
+                  ? 'Your plan will be canceled on '
+                  : 'Your plan renews on'}
                 {format(subscriptionPlan.stripeCurrentPeriodEnd!, 'dd.MM.yyyy')}
                 .
               </p>
@@ -77,4 +80,5 @@ const BillingForm = ({ subscriptionPlan }: BillingFormProps) => {
     </MaxWidthWrapper>
   )
 }
+
 export default BillingForm
