@@ -1,22 +1,22 @@
+import { getUserSubscriptionPlan, stripe } from "@/lib/stripe"
 import { privateProcedure, publicProcedure, router } from "./trpc"
 
 import { INFINITE_QUERY_LIMIT } from "@/config/infinite-query"
+import { PLANS } from "@/config/stripe"
 import { TRPCError } from "@trpc/server"
+import { absoluteUrl } from "@/lib/utils"
 import { db } from "@/db"
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server"
 import { z } from "zod"
 
-// query is GET
-// mutation is POST PUT PATCH etc
 export const appRouter = router({
   authCallback: publicProcedure.query(async () => {
     const { getUser } = getKindeServerSession()
     const user = await getUser()
 
-    if (!user || !user.id || !user.email)
-      throw new TRPCError({ code: "UNAUTHORIZED" })
+    if (!user.id || !user.email) throw new TRPCError({ code: "UNAUTHORIZED" })
 
-    // check db for user info and create if not found
+    // check if the user is in the database
     const dbUser = await db.user.findFirst({
       where: {
         id: user.id,
@@ -24,6 +24,7 @@ export const appRouter = router({
     })
 
     if (!dbUser) {
+      // create user in db
       await db.user.create({
         data: {
           id: user.id,
@@ -34,7 +35,6 @@ export const appRouter = router({
 
     return { success: true }
   }),
-
   getUserFiles: privateProcedure.query(async ({ ctx }) => {
     const { userId } = ctx
 
@@ -43,6 +43,52 @@ export const appRouter = router({
         userId,
       },
     })
+  }),
+
+  createStripeSession: privateProcedure.mutation(async ({ ctx }) => {
+    const { userId } = ctx
+
+    const billingUrl = absoluteUrl("/dashboard/billing")
+
+    if (!userId) throw new TRPCError({ code: "UNAUTHORIZED" })
+
+    const dbUser = await db.user.findFirst({
+      where: {
+        id: userId,
+      },
+    })
+
+    if (!dbUser) throw new TRPCError({ code: "UNAUTHORIZED" })
+
+    const subscriptionPlan = await getUserSubscriptionPlan()
+
+    if (subscriptionPlan.isSubscribed && dbUser.stripeCustomerId) {
+      const stripeSession = await stripe.billingPortal.sessions.create({
+        customer: dbUser.stripeCustomerId,
+        return_url: billingUrl,
+      })
+
+      return { url: stripeSession.url }
+    }
+
+    const stripeSession = await stripe.checkout.sessions.create({
+      success_url: billingUrl,
+      cancel_url: billingUrl,
+      payment_method_types: ["card", "paypal"],
+      mode: "subscription",
+      billing_address_collection: "auto",
+      line_items: [
+        {
+          price: PLANS.find((plan) => plan.name === "Pro")?.price.priceIds.test,
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        userId: userId,
+      },
+    })
+
+    return { url: stripeSession.url }
   }),
 
   getFileMessages: privateProcedure
